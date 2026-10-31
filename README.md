@@ -10,6 +10,8 @@
 
 ### Практическое занятие №1 — Введение, основы работы в командной строке
 
+Описание эмулятора, команды сборки и примеры: [practice-1/edu-tasks/README.md](practice-1/edu-tasks/README.md).
+
 Задания делятся на два набора:
 
 - `practice-1/github-tasks` — задания из репозитория преподавателя на GitHub;
@@ -34,4 +36,12 @@
 
 #### Задания из СДО
 
-Директория [practice-1/edu-tasks/](practice-1/edu-tasks) — в работе.
+Вариант 10: эмулятор командной оболочки на Rust, код в [practice-1/edu-tasks/emulator](practice-1/edu-tasks/emulator).
+
+| Этап | Тема | Статус |
+|------|------|--------|
+| 1 | REPL | выполнен |
+| 2 | Конфигурация | выполнен |
+| 3 | VFS | выполнен |
+
+Описание параметров, команд, формата VFS, сборки и тестов — в [practice-1/edu-tasks/README.md](practice-1/edu-tasks/README.md).
