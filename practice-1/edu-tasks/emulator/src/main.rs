@@ -1,14 +1,23 @@
-//! Эмулятор командной оболочки UNIX. Этап 1: REPL.
+//! Эмулятор командной оболочки UNIX. Этап 2: конфигурация.
 
 mod commands;
+mod config;
 mod parser;
 mod prompt;
+mod script;
 
+use std::env;
 use std::io::{self, BufRead, Write};
+use std::process;
 
 use commands::Outcome;
+use config::Config;
 
-fn main() {
+/// Код завершения при ошибке в параметрах или скрипте.
+const EXIT_FAILURE: i32 = 1;
+
+/// Интерактивный цикл: приглашение, ввод, разбор, выполнение.
+fn repl() {
     let stdin = io::stdin();
     let mut input = stdin.lock();
     loop {
@@ -36,4 +45,24 @@ fn main() {
             break;
         }
     }
+}
+
+fn main() {
+    let config = Config::parse(env::args().skip(1)).unwrap_or_else(|err| {
+        eprintln!("{err}");
+        process::exit(EXIT_FAILURE);
+    });
+    config.print_debug();
+
+    if let Some(path) = &config.script {
+        match script::run(path) {
+            Ok(Outcome::Exit) => return,
+            Ok(Outcome::Continue) => {}
+            Err(err) => {
+                eprintln!("{path}: {err}");
+                process::exit(EXIT_FAILURE);
+            }
+        }
+    }
+    repl();
 }

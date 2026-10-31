@@ -4,7 +4,12 @@ use std::io::Write;
 use std::process::{Command, Stdio};
 
 fn run_session(input: &str) -> (String, String) {
+    run_with_args(&[], input)
+}
+
+fn run_with_args(args: &[&str], input: &str) -> (String, String) {
     let mut child = Command::new(env!("CARGO_BIN_EXE_emulator"))
+        .args(args)
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
@@ -46,4 +51,37 @@ fn exit_stops_processing() {
 fn eof_ends_session() {
     let (out, _) = run_session("ls\n");
     assert!(out.contains("ls []"));
+}
+
+#[test]
+fn debug_output_shows_params() {
+    let (out, _) = run_with_args(&["--vfs", "/data"], "exit\n");
+    assert!(out.contains("[debug] vfs = /data"));
+    assert!(out.contains("[debug] script = (not set)"));
+}
+
+#[test]
+fn script_shows_input_and_output() {
+    let script = "scripts/startup.emu";
+    let (out, err) = run_with_args(&["--script", script], "");
+    assert!(out.contains("$ ls -l /tmp\nls [\"-l\", \"/tmp\"]"));
+    assert!(err.contains("foo: command not found"));
+}
+
+#[test]
+fn script_comments_are_not_executed() {
+    let (out, _) = run_with_args(&["--script", "scripts/startup.emu"], "");
+    assert!(!out.contains("Стартовый"));
+}
+
+#[test]
+fn missing_script_is_error() {
+    let (_, err) = run_with_args(&["--script", "nope.emu"], "");
+    assert!(err.contains("nope.emu"));
+}
+
+#[test]
+fn unknown_param_is_error() {
+    let (_, err) = run_with_args(&["--foo"], "");
+    assert!(err.contains("unknown argument: --foo"));
 }
