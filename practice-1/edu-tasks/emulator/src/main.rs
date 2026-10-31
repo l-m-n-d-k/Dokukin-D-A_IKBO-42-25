@@ -1,10 +1,12 @@
-//! Эмулятор командной оболочки UNIX. Этап 2: конфигурация.
+//! Эмулятор командной оболочки UNIX. Этап 3: VFS.
 
 mod commands;
 mod config;
+mod csv;
 mod parser;
 mod prompt;
 mod script;
+mod vfs;
 
 use std::env;
 use std::io::{self, BufRead, Write};
@@ -12,12 +14,13 @@ use std::process;
 
 use commands::Outcome;
 use config::Config;
+use vfs::Vfs;
 
-/// Код завершения при ошибке в параметрах или скрипте.
+/// Код завершения при ошибке в параметрах, VFS или скрипте.
 const EXIT_FAILURE: i32 = 1;
 
 /// Интерактивный цикл: приглашение, ввод, разбор, выполнение.
-fn repl() {
+fn repl(vfs: Option<&Vfs>) {
     let stdin = io::stdin();
     let mut input = stdin.lock();
     loop {
@@ -41,7 +44,7 @@ fn repl() {
         let Some(parsed) = parser::parse(&line) else {
             continue;
         };
-        if commands::execute(&parsed) == Outcome::Exit {
+        if commands::execute(&parsed, vfs) == Outcome::Exit {
             break;
         }
     }
@@ -54,8 +57,14 @@ fn main() {
     });
     config.print_debug();
 
+    let vfs = config.vfs.as_deref().map(Vfs::load).transpose();
+    let vfs = vfs.unwrap_or_else(|err| {
+        eprintln!("{err}");
+        process::exit(EXIT_FAILURE);
+    });
+
     if let Some(path) = &config.script {
-        match script::run(path) {
+        match script::run(path, vfs.as_ref()) {
             Ok(Outcome::Exit) => return,
             Ok(Outcome::Continue) => {}
             Err(err) => {
@@ -64,5 +73,5 @@ fn main() {
             }
         }
     }
-    repl();
+    repl(vfs.as_ref());
 }

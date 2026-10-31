@@ -4,6 +4,7 @@ use std::fs;
 use std::io;
 
 use crate::commands::{self, Outcome};
+use crate::vfs::Vfs;
 use crate::{parser, prompt};
 
 /// Символ начала комментария в скрипте.
@@ -15,14 +16,14 @@ fn clean(line: &str) -> &str {
 }
 
 /// Выполняет скрипт построчно, печатая приглашение и введённую строку.
-pub fn run(path: &str) -> io::Result<Outcome> {
+pub fn run(path: &str, vfs: Option<&Vfs>) -> io::Result<Outcome> {
     let text = fs::read_to_string(path)?;
     for line in text.lines().map(clean).filter(|line| !line.is_empty()) {
         println!("{}{}", prompt::build(), line);
         let Some(parsed) = parser::parse(line) else {
             continue;
         };
-        if commands::execute(&parsed) == Outcome::Exit {
+        if commands::execute(&parsed, vfs) == Outcome::Exit {
             return Ok(Outcome::Exit);
         }
     }

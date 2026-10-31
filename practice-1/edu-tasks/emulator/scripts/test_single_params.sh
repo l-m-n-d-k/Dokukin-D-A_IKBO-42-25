@@ -3,13 +3,13 @@
 cd "$(dirname "$0")/.." || exit 1
 
 echo "== только --vfs (ввод закрыт, эмулятор завершается по Ctrl+D)"
-cargo run --quiet -- --vfs ./vfs < /dev/null
+cargo run --quiet -- --vfs vfs/minimal.csv < /dev/null
 
 echo "== только --script"
 cargo run --quiet -- --script scripts/startup.emu
 
 echo "== обратный порядок: --script, затем --vfs"
-cargo run --quiet -- --script scripts/startup.emu --vfs ./vfs
+cargo run --quiet -- --script scripts/startup.emu --vfs vfs/minimal.csv
 
 echo "== скрипт без exit, затем интерактивный режим"
-printf 'cd /tmp\nexit\n' | cargo run --quiet -- --vfs ./vfs --script scripts/no_exit.emu
+printf 'cd /tmp\nexit\n' | cargo run --quiet -- --vfs vfs/minimal.csv --script scripts/no_exit.emu

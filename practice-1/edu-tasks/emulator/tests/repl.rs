@@ -55,8 +55,8 @@ fn eof_ends_session() {
 
 #[test]
 fn debug_output_shows_params() {
-    let (out, _) = run_with_args(&["--vfs", "/data"], "exit\n");
-    assert!(out.contains("[debug] vfs = /data"));
+    let (out, _) = run_with_args(&["--vfs", "vfs/minimal.csv"], "exit\n");
+    assert!(out.contains("[debug] vfs = vfs/minimal.csv"));
     assert!(out.contains("[debug] script = (not set)"));
 }
 
@@ -84,4 +84,36 @@ fn missing_script_is_error() {
 fn unknown_param_is_error() {
     let (_, err) = run_with_args(&["--foo"], "");
     assert!(err.contains("unknown argument: --foo"));
+}
+
+#[test]
+fn vfs_info_shows_name_and_hash() {
+    let (out, _) = run_with_args(&["--vfs", "vfs/minimal.csv"], "vfs-info\nexit\n");
+    assert!(out.contains("name: minimal.csv"));
+    let hash = out.split("sha256: ").nth(1).unwrap();
+    assert!(hash[..64].chars().all(|ch| ch.is_ascii_hexdigit()));
+}
+
+#[test]
+fn vfs_info_works_for_nested_vfs() {
+    let (out, _) = run_with_args(&["--vfs", "vfs/deep.csv"], "vfs-info\nexit\n");
+    assert!(out.contains("name: deep.csv"));
+}
+
+#[test]
+fn vfs_info_without_vfs_is_error() {
+    let (_, err) = run_session("vfs-info\nexit\n");
+    assert!(err.contains("vfs-info: no VFS loaded"));
+}
+
+#[test]
+fn broken_vfs_is_error() {
+    let (_, err) = run_with_args(&["--vfs", "vfs/bad_base64.csv"], "");
+    assert!(err.contains("bad base64"));
+}
+
+#[test]
+fn missing_vfs_file_is_error() {
+    let (_, err) = run_with_args(&["--vfs", "vfs/missing.csv"], "");
+    assert!(err.contains("vfs/missing.csv"));
 }

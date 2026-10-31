@@ -1,0 +1,8 @@
+path,type,content
+/home,dir,
+/home/user,dir,
+/home/user/docs/report.txt,file,UmVwb3J0Cg==
+/home/user/docs/archive/2026/summary.txt,file,RGVlcCBmaWxlLCBsZXZlbCA2Cg==
+/home/user/empty_dir,dir,
+/etc/config.ini,file,W21haW5dCmtleT12YWx1ZQo=
+/tmp,dir,
